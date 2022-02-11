@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+    branches:    
+      - build
+jobs:
+  build:
+
+    env:
+      BUILD_TYPE: Release
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Prepare
+      run: |
+        sudo apt-get update
+        sudo apt-get install python3 inotify-tools
+        wget https://github.com/CadQuery/CQ-editor/releases/download/0.2/CQ-editor-Linux-x86_64.zip
+        unzip CQ-editor-Linux-x86_64.zip
+        mkdir output
+
+    - name: Checkout
+      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      
+    - name: Build
+      run: |
+        ./CQ-editor/CQ-editor ../keyboard.py&
+        touch keyboard.py
+        ./wait.sh
+        sleep 5
+        python3 process.py
+
+    - uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571
+      with:
+        name: output
+        path: |
+          output
+
