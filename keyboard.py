@@ -249,6 +249,20 @@ def generate(config: Config, odir='output'):
         "showHidden": False,
     }
 
+    if not (config.split or config.cnc):
+        fs = spacerPlate.faces('+Y').all()
+        fs.sort(key=lambda f: f.edges().val().Center().y)
+        fs = list(filter(lambda f: math.isclose(
+            f.edges().val().Center().x, 0.0, abs_tol=1e-09), fs))
+        assert(len(fs) == 2)
+        ys = fs[-1].edges().val().Center().y
+
+        conn = cq.Workplane('ZX').sketch().push([(config.spacerThickness / 2, 0)])\
+            .slot(9.0 - 2.56, 2.56, angle=90.0).finalize()\
+            .extrude(10.0).workplane(offset=-5.0 + 1.5).sketch().push([(config.spacerThickness / 2, 0)])\
+            .rect(0.5, 15.5).finalize().extrude(15).mirror('ZX').translate((0, ys, 0))
+        spacerPlate = spacerPlate.cut(conn)
+
     if config.cnc:
         switchPlate = switchPlate.faces(">Z").workplane().pushPoints(
             shp).hole(config.screwHoleDiameter)

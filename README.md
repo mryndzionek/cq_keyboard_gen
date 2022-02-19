@@ -6,4 +6,4 @@
 
 # TODO
 
-  - [ ] adding USB connector cutout
+  - [x] adding USB connector cutout
