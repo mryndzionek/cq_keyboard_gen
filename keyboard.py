@@ -1,93 +1,12 @@
-from cadquery import Assembly, Color, Location as Loc, Vector as Vec
+import imp
 from typing import Optional
 import math
-from functools import partial
-from enum import Enum
-import subprocess
+import sys
 import os
-
-
-class Shape(Enum):
-    LEAN = 1
-    HULL = 2
-
-
-class Config:
-    nRows: int
-    nCols: int
-    thumbKeys: Optional[list]
-    columnSpacing: float
-    rowSpacing: float
-    staggering: Optional[list]
-    switchHoleSize: float
-    angle: float  # degrees
-    hOffset: float
-    plateThickness: float
-    shape: Shape
-    screwHoleDiameter: float
-    spacerThickness: float
-    split: bool
-
-    def __init__(self, nc, nr, cs=19, rs=19, switchHoleSize=13.97,
-                 angle=10, hOffset=None, plateThickness=1.5,
-                 spacerThickness=8.0, screwHoleDiameter=4.0,
-                 shape=Shape.LEAN, split=False,
-                 staggering=[0, 5, 11, 6, 3],
-                 thumbKeys=None,
-                 cnc=False,
-                 notched=True,
-                 ):
-        self.nCols = nc
-        self.nRows = nr
-        self.angle = angle
-        self.columnSpacing = cs
-        self.rowSpacing = rs
-        self.switchHoleSize = switchHoleSize
-        if not hOffset:
-            self.hOffset = (self.nRows * self.rowSpacing *
-                            math.sin(math.radians(self.angle))) + 20
-            if self.hOffset < 35:
-                self.hOffset = 35
-        else:
-            self.hOffset = hOffset
-        self.plateThickness = plateThickness
-        self.spacerThickness = spacerThickness
-        self.screwHoleDiameter = screwHoleDiameter
-        self.shape = shape
-        self.split = split
-        self.staggering = staggering
-        self.thumbKeys = thumbKeys
-        self.cnc = cnc
-        self.notched = notched
-        self.update_name()
-
-    def update_name(self):
-        self.name = 'atreus_{}{}_{}'.format(
-            2 * (self.nCols * self.nRows +
-                 (len(self.thumbKeys) if self.thumbKeys else 0)),
-            ('h' if self.shape == Shape.HULL else 'l') +
-            ('s' if self.split else ''),
-            'cnc' if self.cnc else 'print')
-
-
-configs = [
-    # some minimal configs :)
-    Config(3, 3, angle=5),
-    Config(4, 4, angle=5),
-
-    # the original
-    Config(5, 4),
-
-    # my favourite config
-    Config(6, 4, angle=18.5,
-           staggering=[0, 5, 11, 6, 3, 2],
-           thumbKeys=[(0, -1), (-1, 0)]),
-
-    # # some bigger edge case :)
-    # Config(10, 10, angle=18.5,
-    #        staggering=[0, 5, 11, 6, 3, 2],
-    #        thumbKeys=[(0, -1), (-1, 0)])
-]
+from functools import partial
+import json
+from gen_configs import Config, Shape
+from cadquery import Assembly, Color, Location as Loc, Vector as Vec
 
 
 def get_key_hole_shape(config: Config) -> cq.Sketch:
@@ -303,22 +222,25 @@ def generate(config: Config, odir='output'):
         exp = bottomPlate.union(topPlate.translate(
             (0, 0, config.plateThickness + 0.1)))
 
-    cq.exporters.export(exp, os.path.join(odir, '{}.stl'.format(config.name)))
     cq.exporters.export(exp, os.path.join(
         odir, '{}.svg'.format(config.name)), opt=opt)
+    # cq.exporters.export(exp, os.path.join(odir, '{}.stl'.format(config.name)))
+    # assy.save(os.path.join(odir, '{}.step'.format(config.name)))
 
-    assy.save(os.path.join(odir, '{}.step'.format(config.name)))
-    return assy
+    return exp, assy
 
 
-for config in configs:
-    for cnc in [False, True]:
-        for split in [False, True]:
-            for shape in [Shape.LEAN, Shape.HULL]:
-                config.cnc = cnc
-                config.split = split
-                config.shape = shape
-                config.update_name()
+# no arguments == CQ-Editor mode
+if len(sys.argv) > 1:
+    fn = sys.argv[-1].split(':')[-1]
+else:
+    fn = 'configs/atreus_40l_print.json'
 
-                assy = generate(config)
-                # show_object(assy)
+with open(fn, 'r', encoding='utf-8') as f:
+    def config(): return None
+    config.__dict__ = json.loads(f.read())
+    obj, assy = generate(config)
+    if len(sys.argv) > 1:
+        show_object(obj)
+    else:
+        show_object(assy)

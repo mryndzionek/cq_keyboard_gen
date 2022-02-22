@@ -1,7 +1,6 @@
 import glob
 import subprocess
 import os
-import re
 import multiprocessing
 
 
@@ -13,10 +12,17 @@ def process(fn):
     return o_file
 
 
-files = glob.glob("output/*.svg")
-files.sort()
+def adjust_name(fn):
+    fs = fn.split('_')
+    fc = 4 - len(list(filter(lambda c: c.isdigit(), fs[1])))
+    fs[1] = ('0' * fc) + fs[1]
+    return '_'.join(fs)
 
-results = multiprocessing.Pool().map(process, files)
+
+files = glob.glob("output/*.svg")
+files.sort(key=adjust_name)
+
+results = multiprocessing.Pool().imap(process, files)
 
 with open('GALLERY.md', 'w') as gf:
     gf.write("# Gallery\n\n")

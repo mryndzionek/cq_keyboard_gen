@@ -1,0 +1,99 @@
+import json
+from enum import IntEnum
+from typing import Optional
+import math
+
+
+class Shape(IntEnum):
+    LEAN = 0
+    HULL = 1
+
+
+class Config:
+    nRows: int
+    nCols: int
+    thumbKeys: Optional[list]
+    columnSpacing: float
+    rowSpacing: float
+    staggering: Optional[list]
+    switchHoleSize: float
+    angle: float  # degrees
+    hOffset: float
+    plateThickness: float
+    shape: Shape
+    screwHoleDiameter: float
+    spacerThickness: float
+    split: bool
+
+    def __init__(self, nc, nr, cs=19, rs=19, switchHoleSize=13.97,
+                 angle=10, hOffset=None, plateThickness=1.5,
+                 spacerThickness=8.0, screwHoleDiameter=4.0,
+                 shape=Shape.LEAN, split=False,
+                 staggering=[0, 5, 11, 6, 3],
+                 thumbKeys=None,
+                 cnc=False,
+                 notched=True,
+                 ):
+        self.nCols = nc
+        self.nRows = nr
+        self.angle = angle
+        self.columnSpacing = cs
+        self.rowSpacing = rs
+        self.switchHoleSize = switchHoleSize
+        if not hOffset:
+            self.hOffset = (self.nRows * self.rowSpacing *
+                            math.sin(math.radians(self.angle))) + 20
+            if self.hOffset < 35:
+                self.hOffset = 35
+        else:
+            self.hOffset = hOffset
+        self.plateThickness = plateThickness
+        self.spacerThickness = spacerThickness
+        self.screwHoleDiameter = screwHoleDiameter
+        self.shape = shape
+        self.split = split
+        self.staggering = staggering
+        self.thumbKeys = thumbKeys
+        self.cnc = cnc
+        self.notched = notched
+        self.update_name()
+
+    def update_name(self):
+        self.name = 'atreus_{}{}_{}'.format(
+            2 * (self.nCols * self.nRows +
+                 (len(self.thumbKeys) if self.thumbKeys else 0)),
+            ('h' if self.shape == Shape.HULL else 'l') +
+            ('s' if self.split else ''),
+            'cnc' if self.cnc else 'print')
+
+
+configs = [
+    # some minimal configs :)
+    Config(3, 3, angle=5),
+    Config(4, 4, angle=5),
+
+    # the original
+    Config(5, 4),
+
+    # my favourite config
+    Config(6, 4, angle=18.5,
+           staggering=[0, 5, 11, 6, 3, 2],
+           thumbKeys=[(0, -1), (-1, 0)]),
+
+    # # some bigger edge case :)
+    Config(10, 10, angle=18.5,
+           staggering=[0, 5, 11, 6, 3, 2],
+           thumbKeys=[(0, -1), (-1, 0)])
+]
+
+for config in configs:
+    for cnc in [False, True]:
+        for split in [False, True]:
+            for shape in [Shape.LEAN, Shape.HULL]:
+                config.cnc = cnc
+                config.split = split
+                config.shape = shape
+                config.update_name()
+
+                with open("configs/" + config.name + ".json", 'w', encoding='utf-8') as f:
+                    json.dump(config.__dict__, f)
