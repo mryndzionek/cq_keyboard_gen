@@ -96,3 +96,27 @@
 ## output/atreus_52ls_print
 ![image_31](output/atreus_52ls_print.png)
 
+## output/atreus_204h_cnc
+![image_32](output/atreus_204h_cnc.png)
+
+## output/atreus_204h_print
+![image_33](output/atreus_204h_print.png)
+
+## output/atreus_204hs_cnc
+![image_34](output/atreus_204hs_cnc.png)
+
+## output/atreus_204hs_print
+![image_35](output/atreus_204hs_print.png)
+
+## output/atreus_204l_cnc
+![image_36](output/atreus_204l_cnc.png)
+
+## output/atreus_204l_print
+![image_37](output/atreus_204l_print.png)
+
+## output/atreus_204ls_cnc
+![image_38](output/atreus_204ls_cnc.png)
+
+## output/atreus_204ls_print
+![image_39](output/atreus_204ls_print.png)
+
