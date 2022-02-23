@@ -9,7 +9,7 @@ def process(fn):
     print("Processing config file {}".format(fn))
     i_file = os.path.basename(fn)
     o_file = os.path.splitext(i_file)[0]
-    subprocess.run(["./cq-cli", "--codec", "stl", "--infile", "keyboard.py",
+    subprocess.run(["./cq-cli/cq-cli", "--codec", "stl", "--infile", "keyboard.py",
                     "--outfile", os.path.join("output", o_file + ".stl"),
                     "--params", "i:{}".format(fn)])
     return o_file

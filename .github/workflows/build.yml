@@ -17,23 +17,25 @@ jobs:
     - name: Prepare
       run: |
         sudo apt-get update
-        sudo apt-get install python3 inotify-tools
-        wget https://github.com/CadQuery/CQ-editor/releases/download/0.2/CQ-editor-Linux-x86_64.zip
-        unzip CQ-editor-Linux-x86_64.zip
-        mkdir output
+        sudo apt-get install python3 libglew2.1
 
     - name: Checkout
-      uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81
+      uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
       
     - name: Build
       run: |
-        ./CQ-editor/CQ-editor ../keyboard.py&
-        touch keyboard.py
-        ./wait.sh
-        sleep 5
-        python3 process.py
+        set -ex
+        wget https://github.com/CadQuery/cq-cli/releases/download/v2.2-beta.3/cq-cli-Linux-x86_64.zip
+        unzip cq-cli-Linux-x86_64.zip
+        chmod u+x cq-cli/cq-cli
+        mkdir configs
+        python3 gen_configs.py
+        python3 gen_3dfiles.py
+        python3 gen_pngs.py
+        rm output/*.svg
+        set +ex
 
-    - uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571
+    - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2
       with:
         name: output
         path: |
