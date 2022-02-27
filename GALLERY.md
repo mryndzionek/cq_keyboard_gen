@@ -120,27 +120,51 @@
 ## output/atreus_58ls_print
 ![image_39](output/atreus_58ls_print.png)
 
+## output/atreus_70h_cnc
+![image_40](output/atreus_70h_cnc.png)
+
+## output/atreus_70h_print
+![image_41](output/atreus_70h_print.png)
+
+## output/atreus_70hs_cnc
+![image_42](output/atreus_70hs_cnc.png)
+
+## output/atreus_70hs_print
+![image_43](output/atreus_70hs_print.png)
+
+## output/atreus_70l_cnc
+![image_44](output/atreus_70l_cnc.png)
+
+## output/atreus_70l_print
+![image_45](output/atreus_70l_print.png)
+
+## output/atreus_70ls_cnc
+![image_46](output/atreus_70ls_cnc.png)
+
+## output/atreus_70ls_print
+![image_47](output/atreus_70ls_print.png)
+
 ## output/atreus_204h_cnc
-![image_40](output/atreus_204h_cnc.png)
+![image_48](output/atreus_204h_cnc.png)
 
 ## output/atreus_204h_print
-![image_41](output/atreus_204h_print.png)
+![image_49](output/atreus_204h_print.png)
 
 ## output/atreus_204hs_cnc
-![image_42](output/atreus_204hs_cnc.png)
+![image_50](output/atreus_204hs_cnc.png)
 
 ## output/atreus_204hs_print
-![image_43](output/atreus_204hs_print.png)
+![image_51](output/atreus_204hs_print.png)
 
 ## output/atreus_204l_cnc
-![image_44](output/atreus_204l_cnc.png)
+![image_52](output/atreus_204l_cnc.png)
 
 ## output/atreus_204l_print
-![image_45](output/atreus_204l_print.png)
+![image_53](output/atreus_204l_print.png)
 
 ## output/atreus_204ls_cnc
-![image_46](output/atreus_204ls_cnc.png)
+![image_54](output/atreus_204ls_cnc.png)
 
 ## output/atreus_204ls_print
-![image_47](output/atreus_204ls_print.png)
+![image_55](output/atreus_204ls_print.png)
 
