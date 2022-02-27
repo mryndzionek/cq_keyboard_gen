@@ -76,16 +76,17 @@ configs = [
     Config(5, 4),
 
     Config(5, 5, hOffset=70, thumbKeys=[
-           (-1, 1), (-1, 0), (-2, 1), (-2, 0)]),
+           (-1, 1), (-1, 0), (-2, 1), (-2, 0)],
+           staggering=[-12, -3, 0, 5, 11, 6, 3]),
 
     # my favourite config
     Config(6, 4, angle=18.5,
-           staggering=[0, 5, 11, 6, 3, 2],
+           staggering=[0, 0, 5, 11, 6, 3, 2],
            thumbKeys=[(0, -1), (-1, 0)]),
 
     # # some bigger edge case :)
     Config(10, 10, angle=18.5,
-           staggering=[0, 5, 11, 6, 3, 2],
+           staggering=[0, 0, 5, 11, 6, 3, 2],
            thumbKeys=[(0, -1), (-1, 0)])
 ]
 

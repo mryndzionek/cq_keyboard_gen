@@ -1,5 +1,3 @@
-import imp
-from typing import Optional
 import math
 import sys
 import os
@@ -18,25 +16,31 @@ def get_key_hole_shape(config: Config) -> cq.Sketch:
 
 
 def get_key_positions(config: Config) -> [(float, float)]:
+    kc = []
+    for x in range(config.nCols):
+        for y in range(config.nRows):
+            kc.append((x, y))
+
+    if config.thumbKeys:
+        for (x, y) in config.thumbKeys:
+            kc.append((x, y))
+
+    min_x = min(kc, key=lambda xy: xy[0])[0]
+    n_cols = config.nCols - min_x
+
     if config.staggering:
-        if len(config.staggering) <= config.nCols:
+        if len(config.staggering) <= n_cols:
             st = config.staggering + [0] * \
-                (config.nCols - len(config.staggering))
+                (n_cols - len(config.staggering))
         else:
             st = config.staggering
     else:
-        st = [0] * config.nCols
+        st = [0] * n_cols
 
     kp = {}
-    for i, c in enumerate(range(config.nCols)):
-        for r in range(config.nRows):
-            kp[(c, r)] = (config.columnSpacing * c,
-                          st[i] + config.rowSpacing * r)
-
-    if config.thumbKeys:
-        for (tx, ty) in config.thumbKeys:
-            kp[(tx, ty)] = (config.rowSpacing * tx,
-                            config.columnSpacing * ty)
+    for x, y in kc:
+        kp[(x, y)] = (config.columnSpacing * x,
+                      st[x - min_x] + config.rowSpacing * y)
 
     return kp
 
