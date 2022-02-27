@@ -75,6 +75,9 @@ configs = [
     # the original
     Config(5, 4),
 
+    Config(5, 5, hOffset=70, thumbKeys=[
+           (-1, 1), (-1, 0), (-2, 1), (-2, 0)]),
+
     # my favourite config
     Config(6, 4, angle=18.5,
            staggering=[0, 5, 11, 6, 3, 2],
