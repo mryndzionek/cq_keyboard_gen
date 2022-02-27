@@ -67,16 +67,18 @@ def get_center(config: Config, kp):
 
 
 def get_screw_holes_pos(config: Config, kp):
-    fc = kp.keys()
+    rot = partial(rotate, config)
+    lut = {rot(xy): xy for xy in kp.values()}
+
+    fc = lut.keys()
+
     pts = []
+    pts.append(max(fc, key=lambda xy: -xy[1]))
+    pts.append(max(fc, key=lambda xy: xy[0]))
+    pts.append(max(fc, key=lambda xy: xy[0] + xy[1]))
+    pts.append(max(fc, key=lambda xy: (- xy[0] - 1) + xy[1]))
 
-    pts.append(max(fc, key=lambda xy: (config.nRows -
-               xy[0] - 1) + (config.nCols - xy[1] - 1)))
-    pts.append(max(fc, key=lambda xy: xy[0] + (config.nCols - xy[1] - 1)))
-    pts.append(max(fc))
-    pts.append(max(fc, key=lambda xy: (config.nRows - xy[0] - 1) + xy[1]))
-
-    pts = [kp[k] for k in pts]
+    pts = [lut[xy] for xy in pts]
 
     ox = config.columnSpacing / 2 + 2
     oy = config.rowSpacing / 2 + 2
@@ -85,7 +87,7 @@ def get_screw_holes_pos(config: Config, kp):
     pts = [(px_ + ox_, py_ + oy_)
            for ((px_, py_), (ox_, oy_)) in zip(pts, offs)]
 
-    pts = list(map(partial(rotate, config), pts))
+    pts = list(map(rot, pts))
     pts = pts + list(map(lambda xy: (-xy[0], xy[1]), pts))
     return pts
 

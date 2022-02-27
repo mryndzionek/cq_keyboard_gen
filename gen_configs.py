@@ -79,6 +79,10 @@ configs = [
            (-1, 1), (-1, 0), (-2, 1), (-2, 0)],
            staggering=[-12, -3, 0, 5, 11, 6, 3]),
 
+    Config(5, 6, hOffset=65, thumbKeys=[
+           (-1, 1), (-1, 0), (-2, 1), (-2, 0), (0, -1)],
+           staggering=[10, 15, 0, 5, 11, 6, 3]),
+
     # my favourite config
     Config(6, 4, angle=18.5,
            staggering=[0, 0, 5, 11, 6, 3, 2],
@@ -90,14 +94,15 @@ configs = [
            thumbKeys=[(0, -1), (-1, 0)])
 ]
 
-for config in configs:
-    for cnc in [False, True]:
-        for split in [False, True]:
-            for shape in [Shape.LEAN, Shape.HULL]:
-                config.cnc = cnc
-                config.split = split
-                config.shape = shape
-                config.update_name()
+if __name__ == "__main__":
+    for config in configs:
+        for cnc in [False, True]:
+            for split in [False, True]:
+                for shape in [Shape.LEAN, Shape.HULL]:
+                    config.cnc = cnc
+                    config.split = split
+                    config.shape = shape
+                    config.update_name()
 
-                with open("configs/" + config.name + ".json", 'w', encoding='utf-8') as f:
-                    json.dump(config.__dict__, f)
+                    with open("configs/" + config.name + ".json", 'w', encoding='utf-8') as f:
+                        json.dump(config.__dict__, f)
