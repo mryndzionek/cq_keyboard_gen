@@ -163,17 +163,6 @@ def generate(config: Config, odir='output'):
     if config.cnc:
         topPlate = add_reinf(topPlate, config, kp, shp, config.plateThickness)
 
-    opt = {
-        "width": 1200,
-        "height": 1200,
-        "marginLeft": 10,
-        "marginTop": 10,
-        "showAxes": True,
-        "projectionDir": (0.5, -0.5, 0.5),
-        "strokeWidth": 0.5,
-        "showHidden": False,
-    }
-
     if not (config.split or config.cnc):
         fs = spacerPlate.faces('+Y').all()
         fs.sort(key=lambda f: f.edges().val().Center().y)
@@ -210,6 +199,23 @@ def generate(config: Config, odir='output'):
         exp = bottomPlate.union(spacerPlate.translate((0, 0, config.plateThickness)))\
             .union(switchPlate.translate((0, 0, config.plateThickness + config.spacerThickness)))\
             .union(topPlate.translate((0, 0, 2 * config.plateThickness + config.spacerThickness)))
+
+        bbottomPlate = get_base(config, kp, config.plateThickness).faces(">Z").workplane().pushPoints(
+            shp).hole(config.screwHoleDiameter - 1)
+        if config.split:
+            bbottomPlate = bbottomPlate.mirror('YZ', union=True)
+        flat = bbottomPlate
+        offset = 0
+
+        for pp, p in zip([bbottomPlate, spacerPlate, switchPlate, topPlate],
+                         [spacerPlate, switchPlate, topPlate]):
+            s = pp.val()
+            offset += s.BoundingBox().ymax - s.BoundingBox().ymin + 30
+            flat = flat.union(p.translate((0, -offset, 0)))
+
+        cq.exporters.export(flat, os.path.join(
+            odir, '{}_flat.dxf'.format(config.name)))
+
     else:
         topPlate = topPlate.faces(">Z").edges().fillet(0.7)
         bottomPlate = bottomPlate.faces("<Z").edges().fillet(1.0)
@@ -227,6 +233,17 @@ def generate(config: Config, odir='output'):
         )
         exp = bottomPlate.union(topPlate.translate(
             (0, 0, config.plateThickness + 0.1)))
+
+    opt = {
+        "width": 1200,
+        "height": 1200,
+        "marginLeft": 10,
+        "marginTop": 10,
+        "showAxes": True,
+        "projectionDir": (0.5, -0.5, 0.5),
+        "strokeWidth": 0.5,
+        "showHidden": False,
+    }
 
     cq.exporters.export(exp, os.path.join(
         odir, '{}.svg'.format(config.name)), opt=opt)
