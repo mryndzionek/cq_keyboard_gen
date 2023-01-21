@@ -172,11 +172,13 @@ def meshify(base, key_shape, kp, is_split):
     return base.cut(mesh).union(base_frame).union(keys_)
 
 
-def generate(config: Config, odir='output', switch_mesh=True):
+def generate(config: Config, odir='output', switch_mesh=False):
     kp = get_key_positions(config)
     shp = get_screw_holes_pos(config, kp)
 
-    bottomPlate = get_base(config, kp, config.plateThickness).faces(">Z").wires(
+    base = get_base(config, kp, config.plateThickness)
+
+    bottomPlate = base.faces(">Z").wires(
     ).toPending().workplane().offset2D(-6.2).extrude(0.5)
     cut = cq.Workplane().pushPoints(shp).cylinder(
         1.0, 4.2).translate((0, 0, config.plateThickness + 0.5))
@@ -199,12 +201,12 @@ def generate(config: Config, odir='output', switch_mesh=True):
 
     if switch_mesh:
         switchPlate = meshify(
-            get_base(config, kp, config.plateThickness), key_shape, kp, config.split).cut(keys)
+            base, key_shape, kp, config.split).cut(keys)
         if config.cnc:
             switchPlate = add_reinf(switchPlate, config, kp,
                                     shp, config.plateThickness)
     else:
-        switchPlate = get_base(config, kp, config.plateThickness).cut(keys)
+        switchPlate = base.cut(keys)
 
     topPlate = get_base(config, kp, config.plateThickness, True)
     if config.cnc:
@@ -247,7 +249,7 @@ def generate(config: Config, odir='output', switch_mesh=True):
             .union(switchPlate.translate((0, 0, config.plateThickness + config.spacerThickness)))\
             .union(topPlate.translate((0, 0, 2 * config.plateThickness + config.spacerThickness)))
 
-        bbottomPlate = get_base(config, kp, config.plateThickness).faces(">Z").workplane().pushPoints(
+        bbottomPlate = base.faces(">Z").workplane().pushPoints(
             shp).hole(config.screwHoleDiameter - 1)
         if config.split:
             bbottomPlate = bbottomPlate.mirror('YZ', union=True)
