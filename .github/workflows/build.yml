@@ -10,14 +10,14 @@ jobs:
     env:
       BUILD_TYPE: Release
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
 
     - name: Prepare
       run: |
         sudo apt-get update
-        sudo apt-get install python3 libglew2.2 python3-progress
+        sudo apt-get install python3 libglew2.1 python3-progress
 
     - name: Checkout
       uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
