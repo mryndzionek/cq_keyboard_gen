@@ -130,7 +130,49 @@ def add_reinf(base, config: Config, kp, shp, thickness):
     return base.union(reinf)
 
 
-def generate(config: Config, odir='output'):
+def get_keys(kp, key_shape):
+    return cq.Workplane().pushPoints(kp.values()).placeSketch(key_shape).extrude(config.plateThickness)\
+        .rotate((0, 0, 0), (0, 0, 1), config.angle).translate(
+        (config.hOffset, 0))
+
+
+def meshify(base, key_shape, kp, is_split):
+    bbox = base.val().BoundingBox()
+    thc = bbox.zmax - bbox.zmin
+    r = 2.5
+    mesh_th = 1
+
+    base_frame = base.faces(">Z").wires().toPending(
+    ).workplane().offset2D(-4).cutBlind('next')
+
+    keys_ = get_keys(kp, key_shape.copy(
+    ).reset().wires().offset(mesh_th).clean())
+    if not is_split:
+        keys_ = keys_.mirror('YZ', union=True)
+
+    dx = 3 * r + 2 * math.cos(math.radians(60)) * mesh_th
+    dy = r * math.sin(math.radians(60)) + 0.5 * \
+        mesh_th * math.sin(math.radians(60))
+
+    xn = (bbox.xmax - bbox.xmin) / dx
+    yn = (bbox.ymax - bbox.ymin) / dy
+
+    mesh_points = []
+
+    for x in range(0, round(xn)):
+        for y in range(0, round(yn)):
+            x_s = 0 if (y % 2) == 0 else 1.5 * r + \
+                math.cos(math.radians(60)) * mesh_th
+            mesh_points.append(
+                (bbox.xmin + (x * dx) + x_s, bbox.ymin + (y * dy)))
+
+    mesh = cq.Workplane().pushPoints(mesh_points).polygon(
+        6, r * 2).extrude(thc)
+
+    return base.cut(mesh).union(base_frame).union(keys_)
+
+
+def generate(config: Config, odir='output', switch_mesh=True):
     kp = get_key_positions(config)
     shp = get_screw_holes_pos(config, kp)
 
@@ -143,9 +185,7 @@ def generate(config: Config, odir='output'):
         shp).hole(config.screwHoleDiameter - 1)
 
     key_shape = get_key_hole_shape(config)
-    keys = cq.Workplane().pushPoints(kp.values()).placeSketch(key_shape).extrude(config.plateThickness)\
-        .rotate((0, 0, 0), (0, 0, 1), config.angle).translate(
-        (config.hOffset, 0))
+    keys = get_keys(kp, key_shape)
 
     if not config.split:
         keys = keys.mirror('YZ', union=True)
@@ -157,7 +197,14 @@ def generate(config: Config, odir='output'):
     spacerPlate = spacerPlate.faces(">Z").workplane().pushPoints(
         shp).hole(config.screwHoleDiameter)
 
-    switchPlate = get_base(config, kp, config.plateThickness).cut(keys)
+    if switch_mesh:
+        switchPlate = meshify(
+            get_base(config, kp, config.plateThickness), key_shape, kp, config.split).cut(keys)
+        if config.cnc:
+            switchPlate = add_reinf(switchPlate, config, kp,
+                                    shp, config.plateThickness)
+    else:
+        switchPlate = get_base(config, kp, config.plateThickness).cut(keys)
 
     topPlate = get_base(config, kp, config.plateThickness, True)
     if config.cnc:
