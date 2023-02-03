@@ -1,6 +1,6 @@
 import json
 from enum import IntEnum
-from typing import Optional
+from typing import Optional, Tuple
 import math
 
 
@@ -24,6 +24,7 @@ class Config:
     screwHoleDiameter: float
     spacerThickness: float
     split: bool
+    mcu_footprint = Optional[Tuple[float, float]]
 
     def __init__(self, nc, nr, cs=19, rs=19, switchHoleSize=13.97,
                  angle=10, hOffset=None, plateThickness=1.5,
@@ -33,6 +34,7 @@ class Config:
                  thumbKeys=None,
                  cnc=False,
                  notched=True,
+                 mcu_footprint=(30, 60)
                  ):
         self.nCols = nc
         self.nRows = nr
@@ -57,6 +59,7 @@ class Config:
         self.cnc = cnc
         self.notched = notched
         self.update_name()
+        self.mcu_footprint = mcu_footprint
 
     def update_name(self):
         self.name = 'atreus_{}{}_{}'.format(
@@ -86,7 +89,7 @@ configs = [
     # my favourite config
     Config(6, 4, angle=18.5,
            staggering=[0, 0, 5, 11, 6, 3, 2],
-           thumbKeys=[(0, -1), (-1, 0)]),
+           thumbKeys=[(-1, 0), (1, -1)]),
 
     # # some bigger edge case :)
     Config(10, 10, angle=18.5,

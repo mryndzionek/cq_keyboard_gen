@@ -87,6 +87,11 @@ def get_screw_holes_pos(config: Config, kp):
     pts = [(px_ + ox_, py_ + oy_)
            for ((px_, py_), (ox_, oy_)) in zip(pts, offs)]
 
+    if config.split and config.mcu_footprint:
+        pts.append((pts[3][0] - config.mcu_footprint[0], pts[3][1]))
+        pts.append((pts[4][0], pts[4][1] - config.mcu_footprint[1]))
+        pts.pop(3)
+
     pts = list(map(rot, pts))
     pts = pts + list(map(lambda xy: (-xy[0], xy[1]), pts))
     return pts
@@ -94,16 +99,28 @@ def get_screw_holes_pos(config: Config, kp):
 
 def get_base(config: Config, kp, thickness, window=False):
 
-    base = cq.Sketch().push(kp.values())
+    foot_x, foot_y = (config.columnSpacing / 2 + config.switchHoleSize, config.rowSpacing / 2 +
+                      config.switchHoleSize) if config.shape == Shape.LEAN else (config.switchHoleSize, config.switchHoleSize)
+    base = cq.Sketch()
+    if config.split and config.mcu_footprint:
+        x_offs = (
+            config.mcu_footprint[0] + foot_x) / 2
+        y_offs = max([v[1] for (k, v) in kp.items() if k[0] == 0]
+                     ) + (foot_y - config.mcu_footprint[1]) / 2
+        base = base.push(
+            [(-x_offs, y_offs)]).rect(*config.mcu_footprint).reset()
+
+    base = base.push(kp.values())
     if config.shape == Shape.LEAN:
-        base = base.rect(config.columnSpacing / 2 + config.switchHoleSize, config.rowSpacing / 2 + config.switchHoleSize)\
+        base = base.rect(foot_x, foot_y)\
             .faces().clean().vertices().fillet(2.5).faces()\
             .wires().offset(5).clean()
     elif config.shape == Shape.HULL:
-        base = base.rect(config.switchHoleSize, config.switchHoleSize)\
+        base = base.rect(foot_x, foot_y)\
             .faces().hull().clean().wires().offset(12)
 
     base = cq.Workplane().placeSketch(base).extrude(thickness)
+
     base = base.rotate((0, 0, 0), (0, 0, 1), config.angle).translate(
         (config.hOffset, 0))
 
@@ -306,11 +323,15 @@ def generate(config: Config, odir='output', switch_mesh=False):
 if len(sys.argv) > 1:
     fn = sys.argv[-1].split(':')[-1]
 else:
-    fn = 'configs/atreus_40l_print.json'
+    fn = 'configs/atreus_52ls_cnc.json'
 
 with open(fn, 'r', encoding='utf-8') as f:
     def config(): return None
     config.__dict__ = json.loads(f.read())
+
+    if config.split and config.mcu_footprint:
+        config.hOffset += config.mcu_footprint[0]
+
     obj, assy = generate(config)
     if len(sys.argv) > 1:
         show_object(obj)
