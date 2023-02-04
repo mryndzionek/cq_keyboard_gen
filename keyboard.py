@@ -97,7 +97,7 @@ def get_screw_holes_pos(config: Config, kp):
                 pts.pop(4)
         else:
             pts.append((pts[4][0], pts[4][1] - config.mcu_footprint[1]))
-        pts.pop(3)
+        #pts.pop(3)
 
     pts = list(map(rot, pts))
     pts = pts + list(map(lambda xy: (-xy[0], xy[1]), pts))
@@ -208,7 +208,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
         1.0, 4.2).translate((0, 0, config.plateThickness + 0.5))
     bottomPlate = bottomPlate.cut(cut)
     bottomPlate = bottomPlate.faces(">Z").workplane().pushPoints(
-        shp).hole(config.screwHoleDiameter - 1)
+        shp).hole(config.screwHoleDiameter - 0.1)
 
     key_shape = get_key_hole_shape(config)
     keys = get_keys(kp, key_shape)
@@ -254,7 +254,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
         switchPlate = switchPlate.faces(">Z").workplane().pushPoints(
             shp).hole(config.screwHoleDiameter)
         topPlate = topPlate.faces(">Z").workplane().pushPoints(
-            shp).hole(config.screwHoleDiameter - 1)
+            shp).hole(config.screwHoleDiameter - 0.1)
         if config.split:
             bottomPlate = bottomPlate.mirror('YZ', union=True)
             topPlate = topPlate.mirror('YZ', union=True)

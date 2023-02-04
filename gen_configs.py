@@ -28,7 +28,7 @@ class Config:
 
     def __init__(self, nc, nr, cs=19, rs=19, switchHoleSize=13.97,
                  angle=10, hOffset=None, plateThickness=1.5,
-                 spacerThickness=8.0, screwHoleDiameter=4.0,
+                 spacerThickness=8.0, screwHoleDiameter=3.0,
                  shape=Shape.LEAN, split=False,
                  staggering=[0, 5, 11, 6, 3],
                  thumbKeys=None,
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     for config in configs:
         for cnc in [False, True]:
             for split in [False, True]:
-                for shape in [Shape.LEAN, Shape.HULL]:
+                for shape in [Shape.LEAN]:
                     config.cnc = cnc
                     config.split = split
                     config.shape = shape
