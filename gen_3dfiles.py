@@ -25,4 +25,4 @@ files.sort()
 
 results = multiprocessing.Pool().imap(process, files)
 for i, fn in enumerate(results):
-    print("Generated file: {}".format(fn))
+    print("({}/{}) Generated file: {}".format(i + 1, len(files), fn))

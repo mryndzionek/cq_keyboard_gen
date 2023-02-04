@@ -77,23 +77,26 @@ def get_screw_holes_pos(config: Config, kp):
     pts.append(max(fc, key=lambda xy: xy[0]))
     pts.append(max(fc, key=lambda xy: xy[0] + xy[1]))
     pts.append(max(fc, key=lambda xy: (- xy[0] - 1) + xy[1]))
-    if config.split and config.mcu_footprint:
+    if config.shape == Shape.HULL and config.split and config.mcu_footprint:
         pts.append(max(fc, key=lambda xy: -xy[0] - xy[1]))
 
     pts = [lut[xy] for xy in pts]
 
     ox = config.columnSpacing / 2 + 2
     oy = config.rowSpacing / 2 + 2
-    offs = [(-ox, -oy), (ox, -oy), (ox, oy), (-ox, oy), (-ox - 2, oy - 2)]
+    offs = [(-ox, -oy), (ox, -oy), (ox, oy), (-ox, oy), (-ox, oy)]
 
     pts = [(px_ + ox_, py_ + oy_)
            for ((px_, py_), (ox_, oy_)) in zip(pts, offs)]
 
     if config.split and config.mcu_footprint:
         pts.append((pts[3][0] - config.mcu_footprint[0], pts[3][1]))
-        if pts[4][0] > pts[5][0]:
-            pts.append((pts[5][0], pts[5][1] - config.mcu_footprint[1]))
-            pts.pop(4)
+        if config.shape == Shape.HULL:
+            if (pts[4][0] > pts[5][0]):
+                pts.append((pts[5][0], pts[5][1] - config.mcu_footprint[1]))
+                pts.pop(4)
+        else:
+            pts.append((pts[4][0], pts[4][1] - config.mcu_footprint[1]))
         pts.pop(3)
 
     pts = list(map(rot, pts))
