@@ -1,4 +1,6 @@
 *.svg
 *.stl
 *.step
+*.dxf
+configs/*.json
 cq-cli/
