@@ -86,7 +86,10 @@ configs = [
            (-1, 1), (-1, 0), (-2, 1), (-2, 0), (0, -1)],
            staggering=[10, 15, 0, 5, 11, 6, 3]),
 
-    # my favourite config
+    # my favourite configs
+    Config(6, 4, angle=18.5,
+           staggering=[0, 0, 5, 11, 6, 3, 2]),
+
     Config(6, 4, angle=18.5,
            staggering=[0, 0, 5, 11, 6, 3, 2],
            thumbKeys=[(-1, 0), (1, -1)]),
