@@ -88,7 +88,7 @@ configs = [
 
     # my favourite configs
     Config(6, 4, angle=18.5,
-           staggering=[0, 0, 5, 11, 6, 3, 2]),
+           staggering=[0, 5, 11, 6, 3, 2]),
 
     Config(6, 4, angle=18.5,
            staggering=[0, 0, 5, 11, 6, 3, 2],
