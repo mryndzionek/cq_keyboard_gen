@@ -87,6 +87,10 @@ configs = [
            staggering=[10, 15, 0, 5, 11, 6, 3]),
 
     # my favourite configs
+    Config(6, 3, hOffset=50, angle=18.5,
+           staggering=[8, 0, 5, 11, 6, 3, 2],
+           thumbKeys=[(-1, -1), (0, -1), (-1, -2), (1, -1)]),
+           
     Config(6, 4, angle=18.5,
            staggering=[0, 5, 11, 6, 3, 2]),
 
