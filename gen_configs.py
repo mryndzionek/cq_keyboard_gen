@@ -1,7 +1,9 @@
+import math
+import hashlib
+
 import json
 from enum import IntEnum
 from typing import Optional, Tuple
-import math
 
 
 class Shape(IntEnum):
@@ -62,12 +64,17 @@ class Config:
         self.mcu_footprint = mcu_footprint
 
     def update_name(self):
-        self.name = 'atreus_{}{}_{}'.format(
+        name = 'atreus_{}{}_{}'.format(
             2 * (self.nCols * self.nRows +
                  (len(self.thumbKeys) if self.thumbKeys else 0)),
             ('h' if self.shape == Shape.HULL else 'l') +
             ('s' if self.split else ''),
             'cnc' if self.cnc else 'print')
+        name2 = str(self.hOffset) + \
+            str(self.angle) + str(self.staggering)
+        m = hashlib.sha1()
+        m.update(name2.encode('utf-8'))
+        self.name = name + "_" + m.hexdigest()[:7]
 
 
 configs = [
@@ -90,13 +97,17 @@ configs = [
     Config(6, 3, hOffset=50, angle=18.5,
            staggering=[8, 0, 5, 11, 6, 3, 2],
            thumbKeys=[(-1, -1), (0, -1), (-1, -2), (1, -1)]),
-           
+
     Config(6, 4, angle=18.5,
            staggering=[0, 5, 11, 6, 3, 2]),
 
     Config(6, 4, angle=18.5,
            staggering=[0, 0, 5, 11, 6, 3, 2],
            thumbKeys=[(-1, 0), (1, -1)]),
+
+    Config(6, 4, hOffset=55, angle=15.0,
+           staggering=[-12, 0, 5, 11, 6, 3, 2],
+           thumbKeys=[(-1, 0), (-1, 1)]),
 
     # # some bigger edge case :)
     Config(10, 10, angle=18.5,
