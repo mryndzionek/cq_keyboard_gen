@@ -266,6 +266,12 @@ def generate(config: Config, odir='output', switch_mesh=False):
             switchPlate = base.union(reinfPlate.translate(
                 (0, 0, -1))).faces("<Z[1]").edges().fillet(0.9)
             switchPlate = switchPlate.cut(keys)
+            rot = partial(rotate, config)
+            d = (config.spacerThickness - 0.5)
+            ps = [kp[p] for p in filter(
+                lambda p: p[0] > 0 and p[1] < config.nRows - 1, kp.keys())]
+            switchPlate = switchPlate.union(cq.Workplane("XY").pushPoints([rot((x - 8.5, y + 9.5)) for x, y in ps]).cylinder(
+                d, 1.5).translate((0, 0, -d / 2)).mirror('YZ', union=True))
 
     topPlate = get_base(config, kp, config.plateThickness, True)
     if config.cnc:
