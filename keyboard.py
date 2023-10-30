@@ -4,7 +4,7 @@ import os
 from functools import partial
 import json
 from gen_configs import Config, Shape
-from cadquery import Assembly, Color, Location as Loc, Vector as Vec
+from cadquery import Location as Loc, Vector as Vec
 
 
 def get_key_hole_shape(config: Config) -> cq.Sketch:
@@ -197,15 +197,23 @@ def meshify(base, key_shape, kp, is_split):
 
 
 def get_mcu_pcb(config):
-    pcb_w, pcb_l, pcb_t = (53, 23, 1.5)
-    # pcb_w, pcb_l, pcb_t = (53.5, 21, 1.5)
+    pcb_l, pcb_w, pcb_t = (53, 23, 1.5)
+    # pcb_l, pcb_w, pcb_t = (53.5, 21, 1.5)
 
-    pcb = cq.Workplane('ZX').sketch().push([(0, 0)]).slot(10.5 - 5, 5, angle=90.0).finalize().extrude(-1.0)\
+    pcb = cq.Workplane('ZX').sketch().slot(10.5 - 5, 5, angle=90.0).finalize().extrude(-1.0)\
             .workplane().sketch().slot(9.0 - 3.5, 3.5, angle=90.0).finalize().extrude(-8.0)\
-            .workplane(3).move(-(3.5 + pcb_t) / 2, 0)\
-            .rect(pcb_t, pcb_l).extrude(-pcb_w)
+            .workplane(3).move((3.5 + pcb_t) / 2, 0)\
+            .rect(pcb_t, pcb_w).extrude(-pcb_l)
 
-    return pcb
+    pcb_cut1 = cq.Workplane('ZX').workplane(-2).move((3.5 + pcb_t) / 2, 0)\
+        .rect(pcb_t, pcb_w).extrude(-(pcb_l - 1)).faces(">Z").wires().toPending().workplane().extrude(-4 * config.spacerThickness)
+
+    pcb_base = pcb.faces('>Z').workplane(-pcb_t).move(0, -
+                                                      2 - (pcb_l / 2)).rect(pcb_w + 10, pcb_l + 3).extrude(2 * pcb_t)
+
+    pcb = pcb.union(pcb_cut1)
+
+    return pcb, pcb_base
 
 
 def generate(config: Config, odir='output', switch_mesh=False):
@@ -263,18 +271,6 @@ def generate(config: Config, odir='output', switch_mesh=False):
     if config.cnc:
         topPlate = add_reinf(topPlate, config, kp,
                              shp_top, config.plateThickness)
-
-    if not (config.split or config.cnc):
-        fs = spacerPlate.faces('+Y').all()
-        fs.sort(key=lambda f: f.edges().val().Center().y)
-        fs = list(filter(lambda f: math.isclose(
-            f.edges().val().Center().x, 0.0, abs_tol=1e-09), fs))
-        assert (len(fs) == 2)
-        ys = fs[-1].edges().val().Center().y
-
-        mcu_pcb = get_mcu_pcb(config)
-        spacerPlate = spacerPlate.cut(mcu_pcb.translate(
-            (0, ys, config.spacerThickness / 2)))
 
     if config.cnc:
         bottomPlate = bottomPlate.faces(">Z").workplane().pushPoints(
@@ -339,6 +335,21 @@ def generate(config: Config, odir='output', switch_mesh=False):
         topPlate = spacerPlate\
             .union(switchPlate.translate((0, 0, config.spacerThickness)))\
             .union(topPlate.translate((0, 0, config.spacerThickness + config.plateThickness)))
+
+        if not config.split:
+            fs = spacerPlate.faces('+Y').all()
+            fs.sort(key=lambda f: f.edges().val().Center().y)
+            fs = list(filter(lambda f: math.isclose(
+                f.edges().val().Center().x, 0.0, abs_tol=1e-09), fs))
+            assert (len(fs) == 2)
+            ys = fs[-1].edges().val().Center().y
+
+            mcu_pcb, pcb_base = get_mcu_pcb(config)
+            topPlate = topPlate.union(pcb_base.translate(
+                (0, ys, (config.spacerThickness / 2) + config.plateThickness)))
+            topPlate = topPlate.cut(mcu_pcb.translate(
+                (0, ys, (config.spacerThickness / 2) + config.plateThickness)))
+
         if config.split:
             topPlate = topPlate.mirror('YZ', union=True)
             bottomPlate = bottomPlate.mirror('YZ', union=True)
