@@ -45,10 +45,10 @@ class Config:
         self.rowSpacing = rs
         self.switchHoleSize = switchHoleSize
         if not hOffset:
-            self.hOffset = (self.nRows * self.rowSpacing *
-                            math.sin(math.radians(self.angle))) + 20
-            if self.hOffset < 35:
-                self.hOffset = 35
+            self.hOffset = (self.nRows * (self.rowSpacing + self.switchHoleSize) /
+                            2) * math.sin(math.radians(self.angle)) * 2
+            if self.hOffset < 45:
+                self.hOffset = 45
         else:
             self.hOffset = hOffset
         self.plateThickness = plateThickness
@@ -70,8 +70,7 @@ class Config:
             ('h' if self.shape == Shape.HULL else 'l') +
             ('s' if self.split else ''),
             'cnc' if self.cnc else 'print')
-        name2 = str(self.hOffset) + \
-            str(self.angle) + str(self.staggering)
+        name2 = str(self.angle) + str(self.staggering)
         m = hashlib.sha1()
         m.update(name2.encode('utf-8'))
         self.name = name + "_" + m.hexdigest()[:7]

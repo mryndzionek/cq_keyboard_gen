@@ -25,9 +25,10 @@ jobs:
     - name: Build
       run: |
         set -ex
-        wget https://github.com/CadQuery/cq-cli/releases/download/v2.2-beta.3/cq-cli-Linux-x86_64.zip
-        unzip cq-cli-Linux-x86_64.zip
-        chmod u+x cq-cli/cq-cli
+        python3 -m venv cq-editor
+        source cq-editor/bin/activate
+        pip3 install --upgrade pip
+        pip3 install git+https://github.com/CadQuery/cq-cli.git
         mkdir configs
         python3 gen_configs.py
         python3 gen_3dfiles.py
@@ -52,4 +53,5 @@ jobs:
         name: png
         path: |
           output/*.png
+          GALLERY.md
 

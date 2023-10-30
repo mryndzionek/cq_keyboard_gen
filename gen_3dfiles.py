@@ -10,7 +10,7 @@ def process(fn):
 
     ofp = os.path.join("output", o_file + ".stl")
 
-    ret = subprocess.run(["./cq-cli/cq-cli", "--codec", "stl", "--infile", "keyboard.py",
+    ret = subprocess.run(["cq-cli", "--codec", "stl", "--infile", "keyboard.py",
                           "--outfile", ofp,
                           "--params", "i:{}".format(fn)])
 

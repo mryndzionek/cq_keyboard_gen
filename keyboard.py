@@ -391,7 +391,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
 if len(sys.argv) > 1:
     fn = sys.argv[-1].split(':')[-1]
 else:
-    fn = 'configs/atreus_52l_print_5b320d0.json'
+    fn = 'configs/atreus_52l_print_97a7fee.json'
 
 with open(fn, 'r', encoding='utf-8') as f:
     def config(): return None
