@@ -196,6 +196,18 @@ def meshify(base, key_shape, kp, is_split):
     return base.cut(mesh).union(base_frame).union(keys_)
 
 
+def get_mcu_pcb(config):
+    pcb_w, pcb_l, pcb_t = (53, 23, 1.5)
+    # pcb_w, pcb_l, pcb_t = (53.5, 21, 1.5)
+
+    pcb = cq.Workplane('ZX').sketch().push([(0, 0)]).slot(10.5 - 5, 5, angle=90.0).finalize().extrude(-1.0)\
+            .workplane().sketch().slot(9.0 - 3.5, 3.5, angle=90.0).finalize().extrude(-8.0)\
+            .workplane(3).move(-(3.5 + pcb_t) / 2, 0)\
+            .rect(pcb_t, pcb_l).extrude(-pcb_w)
+
+    return pcb
+
+
 def generate(config: Config, odir='output', switch_mesh=False):
     kp = get_key_positions(config)
     shp_top = get_screw_holes_pos(config, kp)
@@ -260,11 +272,9 @@ def generate(config: Config, odir='output', switch_mesh=False):
         assert (len(fs) == 2)
         ys = fs[-1].edges().val().Center().y
 
-        conn = cq.Workplane('ZX').sketch().push([(config.spacerThickness / 2, 0)])\
-            .slot(9.0 - 2.56, 2.56, angle=90.0).finalize()\
-            .extrude(10.0).workplane(offset=-5.0 + 1.5).sketch().push([(config.spacerThickness / 2, 0)])\
-            .rect(0.5, 15.5).finalize().extrude(15).mirror('ZX').translate((0, ys, 0))
-        spacerPlate = spacerPlate.cut(conn)
+        mcu_pcb = get_mcu_pcb(config)
+        spacerPlate = spacerPlate.cut(mcu_pcb.translate(
+            (0, ys, config.spacerThickness / 2)))
 
     if config.cnc:
         bottomPlate = bottomPlate.faces(">Z").workplane().pushPoints(
@@ -364,7 +374,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
 if len(sys.argv) > 1:
     fn = sys.argv[-1].split(':')[-1]
 else:
-    fn = 'configs/atreus_52ls_print.json'
+    fn = 'configs/atreus_52l_print.json'
 
 with open(fn, 'r', encoding='utf-8') as f:
     def config(): return None
