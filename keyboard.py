@@ -198,13 +198,14 @@ def meshify(base, key_shape, kp, is_split):
 
 def generate(config: Config, odir='output', switch_mesh=False):
     kp = get_key_positions(config)
-    shp = get_screw_holes_pos(config, kp)
+    shp_top = get_screw_holes_pos(config, kp)
+    shp_bottom = [(-x, -y) for x, y in shp_top]
 
     base = get_base(config, kp, config.plateThickness)
 
     bottomPlate = base.faces(">Z").wires(
     ).toPending().workplane().offset2D(-6.2).extrude(0.5)
-    cut = cq.Workplane().pushPoints(shp).cylinder(
+    cut = cq.Workplane().pushPoints(shp_top).cylinder(
         1.0, 4.2).translate((0, 0, config.plateThickness + 0.5))
     bottomPlate = bottomPlate.cut(cut)
 
@@ -217,16 +218,22 @@ def generate(config: Config, odir='output', switch_mesh=False):
     spacerPlate = get_base(config, kp, config.spacerThickness).faces(">Z").wires(
     ).toPending().workplane().offset2D(-6).cutBlind('next')
     spacerPlate = add_reinf(spacerPlate, config, kp,
-                            shp, config.spacerThickness)
-    spacerPlate = spacerPlate.faces(">Z").workplane().pushPoints(
-        shp).hole(config.screwHoleDiameter)
+                            shp_top, config.spacerThickness)
+    if config.cnc:
+        spacerPlate = spacerPlate.faces(">Z").workplane().pushPoints(
+            shp_top).hole(config.screwHoleDiameter)
+    else:
+        # counterbored holes for threaded inserts
+        # TODO add dimensions for screws different than M3
+        spacerPlate = spacerPlate.faces("<Z").workplane().pushPoints(shp_bottom).cboreHole(
+            config.screwHoleDiameter + 0.8, config.screwHoleDiameter + 1.2, 1, 6)
 
     if switch_mesh:
         switchPlate = meshify(
             base, key_shape, kp, config.split).cut(keys)
         if config.cnc:
             switchPlate = add_reinf(switchPlate, config, kp,
-                                    shp, config.plateThickness)
+                                    shp_top, config.plateThickness)
     else:
         if config.cnc:
             switchPlate = base.cut(keys)
@@ -242,7 +249,8 @@ def generate(config: Config, odir='output', switch_mesh=False):
 
     topPlate = get_base(config, kp, config.plateThickness, True)
     if config.cnc:
-        topPlate = add_reinf(topPlate, config, kp, shp, config.plateThickness)
+        topPlate = add_reinf(topPlate, config, kp,
+                             shp_top, config.plateThickness)
 
     if not (config.split or config.cnc):
         fs = spacerPlate.faces('+Y').all()
@@ -260,11 +268,11 @@ def generate(config: Config, odir='output', switch_mesh=False):
 
     if config.cnc:
         bottomPlate = bottomPlate.faces(">Z").workplane().pushPoints(
-            shp).hole(config.screwHoleDiameter - 0.1)
+            shp_top).hole(config.screwHoleDiameter - 0.1)
         switchPlate = switchPlate.faces(">Z").workplane().pushPoints(
-            shp).hole(config.screwHoleDiameter)
+            shp_top).hole(config.screwHoleDiameter)
         topPlate = topPlate.faces(">Z").workplane().pushPoints(
-            shp).hole(config.screwHoleDiameter - 0.1)
+            shp_top).hole(config.screwHoleDiameter - 0.1)
         if config.split:
             bottomPlate = bottomPlate.mirror('YZ', union=True)
             topPlate = topPlate.mirror('YZ', union=True)
@@ -284,7 +292,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
             .union(topPlate.translate((0, 0, 2 * config.plateThickness + config.spacerThickness)))
 
         bbottomPlate = base.faces(">Z").workplane().pushPoints(
-            shp).hole(config.screwHoleDiameter - 1)
+            shp_top).hole(config.screwHoleDiameter - 1)
         if config.split:
             bbottomPlate = bbottomPlate.mirror('YZ', union=True)
         flat = bbottomPlate
@@ -302,17 +310,16 @@ def generate(config: Config, odir='output', switch_mesh=False):
     else:
         bottomPlate = bottomPlate.faces("<Z").edges().fillet(1.0)
         angle = math.degrees(math.atan(1.5 / 1.7))
-        hp = [(-x, -y) for x, y in shp]
         bottomPlate = bottomPlate.faces("<Z").workplane(
-        ).pushPoints(hp).cskHole(config.screwHoleDiameter, 2 * config.screwHoleDiameter, 2 * angle, depth=None)
+        ).pushPoints(shp_bottom).cskHole(config.screwHoleDiameter, 2 * config.screwHoleDiameter, 2 * angle, depth=None)
 
         # adhesive feet markers
         if config.split:
-            pts = [(hp[0][0] - 8, hp[0][1] - 8), (hp[1][0] + 8,
-                                                  hp[1][1] - 8), (hp[2][0] + 8, hp[2][1] + 8), (hp[4][0] - 8, hp[4][1] + 8)]
+            pts = [(shp_bottom[0][0] - 8, shp_bottom[0][1] - 8), (shp_bottom[1][0] + 8,
+                                                                  shp_bottom[1][1] - 8), (shp_bottom[2][0] + 8, shp_bottom[2][1] + 8), (shp_bottom[4][0] - 8, shp_bottom[4][1] + 8)]
         else:
-            pts = [(hp[0][0] - 8, hp[0][1] - 8), (hp[1][0] + 8,
-                                                  hp[1][1] - 8), (hp[2][0] + 8, hp[2][1] + 8)]
+            pts = [(shp_bottom[0][0] - 8, shp_bottom[0][1] - 8), (shp_bottom[1][0] + 8,
+                                                                  shp_bottom[1][1] - 8), (shp_bottom[2][0] + 8, shp_bottom[2][1] + 8)]
 
         bottomPlate = bottomPlate.faces("<Z").workplane().pushPoints(
             pts).circle(5.5).circle(5).extrude(1).mirror("ZY", union=True)
