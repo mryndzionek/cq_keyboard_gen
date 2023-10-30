@@ -97,7 +97,7 @@ def get_screw_holes_pos(config: Config, kp):
                 pts.pop(4)
         else:
             pts.append((pts[4][0], pts[4][1] - config.mcu_footprint[1]))
-        #pts.pop(3)
+        # pts.pop(3)
 
     pts = list(map(rot, pts))
     pts = pts + list(map(lambda xy: (-xy[0], xy[1]), pts))
@@ -230,7 +230,17 @@ def generate(config: Config, odir='output', switch_mesh=False):
             switchPlate = add_reinf(switchPlate, config, kp,
                                     shp, config.plateThickness)
     else:
-        switchPlate = base.cut(keys)
+        if config.cnc:
+            switchPlate = base.cut(keys)
+        else:
+            reinf = cq.Sketch().rect(config.switchHoleSize + 4,
+                                     config.switchHoleSize + 4).vertices().chamfer(2.0)
+            reinfs = get_keys(kp, reinf)
+            reinfs = reinfs.mirror('YZ', union=True)
+            reinfPlate = base.cut(reinfs)
+            switchPlate = base.union(reinfPlate.translate(
+                (0, 0, -1))).faces("<Z[1]").edges().fillet(0.9)
+            switchPlate = switchPlate.cut(keys)
 
     topPlate = get_base(config, kp, config.plateThickness, True)
     if config.cnc:
@@ -241,7 +251,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
         fs.sort(key=lambda f: f.edges().val().Center().y)
         fs = list(filter(lambda f: math.isclose(
             f.edges().val().Center().x, 0.0, abs_tol=1e-09), fs))
-        assert(len(fs) == 2)
+        assert (len(fs) == 2)
         ys = fs[-1].edges().val().Center().y
 
         conn = cq.Workplane('ZX').sketch().push([(config.spacerThickness / 2, 0)])\
