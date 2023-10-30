@@ -207,8 +207,6 @@ def generate(config: Config, odir='output', switch_mesh=False):
     cut = cq.Workplane().pushPoints(shp).cylinder(
         1.0, 4.2).translate((0, 0, config.plateThickness + 0.5))
     bottomPlate = bottomPlate.cut(cut)
-    bottomPlate = bottomPlate.faces(">Z").workplane().pushPoints(
-        shp).hole(config.screwHoleDiameter - 0.1)
 
     key_shape = get_key_hole_shape(config)
     keys = get_keys(kp, key_shape)
@@ -261,6 +259,8 @@ def generate(config: Config, odir='output', switch_mesh=False):
         spacerPlate = spacerPlate.cut(conn)
 
     if config.cnc:
+        bottomPlate = bottomPlate.faces(">Z").workplane().pushPoints(
+            shp).hole(config.screwHoleDiameter - 0.1)
         switchPlate = switchPlate.faces(">Z").workplane().pushPoints(
             shp).hole(config.screwHoleDiameter)
         topPlate = topPlate.faces(">Z").workplane().pushPoints(
@@ -300,8 +300,25 @@ def generate(config: Config, odir='output', switch_mesh=False):
             odir, '{}_flat.dxf'.format(config.name)))
 
     else:
-        topPlate = topPlate.faces(">Z").edges().fillet(0.7)
         bottomPlate = bottomPlate.faces("<Z").edges().fillet(1.0)
+        angle = math.degrees(math.atan(1.5 / 1.7))
+        hp = [(-x, -y) for x, y in shp]
+        bottomPlate = bottomPlate.faces("<Z").workplane(
+        ).pushPoints(hp).cskHole(config.screwHoleDiameter, 2 * config.screwHoleDiameter, 2 * angle, depth=None)
+
+        # adhesive feet markers
+        if config.split:
+            pts = [(hp[0][0] - 8, hp[0][1] - 8), (hp[1][0] + 8,
+                                                  hp[1][1] - 8), (hp[2][0] + 8, hp[2][1] + 8), (hp[4][0] - 8, hp[4][1] + 8)]
+        else:
+            pts = [(hp[0][0] - 8, hp[0][1] - 8), (hp[1][0] + 8,
+                                                  hp[1][1] - 8), (hp[2][0] + 8, hp[2][1] + 8)]
+
+        bottomPlate = bottomPlate.faces("<Z").workplane().pushPoints(
+            pts).circle(5.5).circle(5).extrude(1).mirror("ZY", union=True)
+        bottomPlate = bottomPlate.faces("<Z").edges().fillet(0.2)
+
+        topPlate = topPlate.faces(">Z").edges().fillet(0.7)
         topPlate = spacerPlate\
             .union(switchPlate.translate((0, 0, config.spacerThickness)))\
             .union(topPlate.translate((0, 0, config.spacerThickness + config.plateThickness)))
@@ -340,7 +357,7 @@ def generate(config: Config, odir='output', switch_mesh=False):
 if len(sys.argv) > 1:
     fn = sys.argv[-1].split(':')[-1]
 else:
-    fn = 'configs/atreus_52ls_cnc.json'
+    fn = 'configs/atreus_52ls_print.json'
 
 with open(fn, 'r', encoding='utf-8') as f:
     def config(): return None
