@@ -4,3 +4,4 @@
 *.dxf
 configs/*.json
 cq-cli/
+output/

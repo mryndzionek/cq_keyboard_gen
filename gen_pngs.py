@@ -28,5 +28,6 @@ with open('GALLERY.md', 'w') as gf:
     gf.write("# Gallery\n\n")
 
     for i, fn in enumerate(results):
+        fn = os.path.join("images", *os.path.split(fn)[1:]) 
         gf.write("## {}\n".format(fn))
         gf.write("![image_{}]({})\n\n".format(i, fn + ".png"))
