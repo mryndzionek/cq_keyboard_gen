@@ -245,8 +245,11 @@ def generate(config: Config, odir='output', switch_mesh=False):
     else:
         # counterbored holes for threaded inserts
         # TODO add dimensions for screws different than M3
+        insert_len = 4
         spacerPlate = spacerPlate.faces("<Z").workplane().pushPoints(shp_bottom).cboreHole(
-            config.screwHoleDiameter + 0.8, config.screwHoleDiameter + 1.2, 1, 6)
+            config.screwHoleDiameter + 0.8, config.screwHoleDiameter + 1.2, 1, insert_len)
+        spacerPlate = spacerPlate.faces("<Z").workplane().pushPoints(
+            shp_bottom).hole(config.screwHoleDiameter, 6)
 
     if switch_mesh:
         switchPlate = meshify(
@@ -333,9 +336,8 @@ def generate(config: Config, odir='output', switch_mesh=False):
             pts = [(shp_bottom[0][0] - 8, shp_bottom[0][1] - 8), (shp_bottom[1][0] + 8,
                                                                   shp_bottom[1][1] - 8), (shp_bottom[2][0] + 8, shp_bottom[2][1] + 8)]
 
-        bottomPlate = bottomPlate.faces("<Z").workplane().pushPoints(
-            pts).circle(5.5).circle(5).extrude(1).mirror("ZY", union=True)
-        bottomPlate = bottomPlate.faces("<Z").edges().fillet(0.2)
+        pts += [(-x, y) for x, y in pts]
+        bottomPlate = bottomPlate.faces("<Z").pushPoints(pts).hole(10, 0.5)
 
         topPlate = topPlate.faces(">Z").edges().fillet(0.7)
         topPlate = spacerPlate\

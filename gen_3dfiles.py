@@ -14,7 +14,7 @@ def process(fn):
                           "--outfile", ofp,
                           "--params", "i:{}".format(fn)])
 
-    assert(ret.returncode == 0)
+    assert ret.returncode == 0, "Failed to gen. 3d file: {}".format(fn)
     assert os.path.isfile(ofp), "File {} doesn't exist".format(ofp)
 
     return o_file
