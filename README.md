@@ -10,6 +10,10 @@
 More [here](GALLERY.md).
 For STL files got to the `Actions` tab.
 
+First 3D-printed keyboard build using this project:
+
+![print](images/first_print.JPG)
+
 # TODO
 
   - [x] adding USB connector cutout
